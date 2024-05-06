@@ -4,7 +4,7 @@ import telegram
 from dotenv import load_dotenv
 
 
-def verification_notification(devman_token, telegram_bot, telegram_chat_id):
+def get_notification(devman_token, telegram_bot, telegram_chat_id):
     headers = {
         'Authorization': f'Token {devman_token}'
     }
@@ -53,7 +53,7 @@ def main():
     devman_token = os.environ['DEVMAN_TOKEN']
     telegram_bot = telegram.Bot(token=telegram_token)
     telegram_chat_id = telegram_bot.get_updates()[0].message.from_user.id
-    verification_notification(devman_token, telegram_bot, telegram_chat_id)
+    get_notification(devman_token, telegram_bot, telegram_chat_id)
 
 
 if __name__ == '__main__':
