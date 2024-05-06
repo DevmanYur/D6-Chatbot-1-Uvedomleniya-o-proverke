@@ -4,7 +4,7 @@ import telegram
 from dotenv import load_dotenv
 
 
-def verification_notification(devman_token, telegram_token):
+def verification_notification(devman_token, telegram_bot, telegram_chat_id):
     headers = {
         'Authorization': f'Token {devman_token}'
     }
@@ -30,30 +30,30 @@ def verification_notification(devman_token, telegram_token):
                                 f'\n"{lesson_title}"\n'
                                 f'\nК сожалению, в работе нашлись ошибки.\n'
                                 f'\n Ссылка на работу: {lesson_url}')
-                        start_telegram_bot(telegram_token, text)
+                        start_telegram_bot(telegram_bot, telegram_chat_id, text)
                     else:
                         text = (f'У вас проверили работу: '
                                 f'\n"{lesson_title}"\n'
                                 f'\nПреподавателю всё понравилось, можно приступать к следующему уроку!\n'
                                 f'\nСсылка на работу: {lesson_url}')
-                        start_telegram_bot(telegram_token, text)
+                        start_telegram_bot(telegram_bot, telegram_chat_id, text)
         except requests.exceptions.ReadTimeout:
             continue
         except requests.exceptions.ConnectionError:
             continue
 
 
-def start_telegram_bot(telegram_token, text):
-    bot = telegram.Bot(token=telegram_token)
-    chat_id = bot.get_updates()[0].message.from_user.id
-    bot.send_message(chat_id=chat_id, text=text)
+def start_telegram_bot(telegram_bot, telegram_chat_id, text):
+    telegram_bot.send_message(chat_id=telegram_chat_id, text=text)
 
 
 def main():
     load_dotenv()
     telegram_token = os.environ['TELEGRAM_TOKEN']
     devman_token = os.environ['DEVMAN_TOKEN']
-    verification_notification(devman_token, telegram_token)
+    telegram_bot = telegram.Bot(token=telegram_token)
+    telegram_chat_id = telegram_bot.get_updates()[0].message.from_user.id
+    verification_notification(devman_token, telegram_bot, telegram_chat_id)
 
 
 if __name__ == '__main__':
