@@ -30,21 +30,17 @@ def get_notification(devman_token, telegram_bot, telegram_chat_id):
                                 f'\n"{lesson_title}"\n'
                                 f'\nК сожалению, в работе нашлись ошибки.\n'
                                 f'\n Ссылка на работу: {lesson_url}')
-                        start_telegram_bot(telegram_bot, telegram_chat_id, text)
+                        telegram_bot.send_message(chat_id=telegram_chat_id, text=text)
                     else:
                         text = (f'У вас проверили работу: '
                                 f'\n"{lesson_title}"\n'
                                 f'\nПреподавателю всё понравилось, можно приступать к следующему уроку!\n'
                                 f'\nСсылка на работу: {lesson_url}')
-                        start_telegram_bot(telegram_bot, telegram_chat_id, text)
+                        telegram_bot.send_message(chat_id=telegram_chat_id, text=text)
         except requests.exceptions.ReadTimeout:
             continue
         except requests.exceptions.ConnectionError:
             continue
-
-
-def start_telegram_bot(telegram_bot, telegram_chat_id, text):
-    telegram_bot.send_message(chat_id=telegram_chat_id, text=text)
 
 
 def main():
