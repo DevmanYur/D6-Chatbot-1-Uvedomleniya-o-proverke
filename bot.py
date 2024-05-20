@@ -3,6 +3,10 @@ import requests
 import telegram
 from dotenv import load_dotenv
 import logging
+import time
+
+
+logger = logging.getLogger('Logger')
 
 
 class TelegramLogsHandler(logging.Handler):
@@ -16,15 +20,8 @@ class TelegramLogsHandler(logging.Handler):
         log_entry = self.format(record)
         self.tg_bot.send_message(chat_id=self.chat_id, text=log_entry)
 
-load_dotenv()
-telegram_token = os.environ['TELEGRAM_TOKEN']
-telegram_bot = telegram.Bot(token=telegram_token)
-telegram_chat_id = telegram_bot.get_updates()[0].message.from_user.id
-logger = logging.getLogger('Logger')
-logger.setLevel(logging.DEBUG)
-logger.addHandler(TelegramLogsHandler(telegram_bot, telegram_chat_id))
 
-def get_notification(devman_token, telegram_bot, telegram_chat_id):
+def get_notification(devman_token, tg_bot, chat_id):
     headers = {
         'Authorization': f'Token {devman_token}'
     }
@@ -54,19 +51,20 @@ def get_notification(devman_token, telegram_bot, telegram_chat_id):
                                 f'\n"{lesson_title}"\n'
                                 f'\nК сожалению, в работе нашлись ошибки.\n'
                                 f'\n Ссылка на работу: {lesson_url}')
-                        telegram_bot.send_message(chat_id=telegram_chat_id, text=text)
+                        tg_bot.send_message(chat_id=chat_id, text=text)
                     else:
                         logger.info(f"Работу приняли")
                         text = (f'У вас проверили работу: '
                                 f'\n"{lesson_title}"\n'
                                 f'\nПреподавателю всё понравилось, можно приступать к следующему уроку!\n'
                                 f'\nСсылка на работу: {lesson_url}')
-                        telegram_bot.send_message(chat_id=telegram_chat_id, text=text)
+                        tg_bot.send_message(chat_id=chat_id, text=text)
         except requests.exceptions.ReadTimeout:
             logger.info("Истекло время тайм-аута")
             continue
         except requests.exceptions.ConnectionError:
             logger.info("Нет соединения с интернетом")
+            time.sleep(60)
             continue
 
 
@@ -74,9 +72,13 @@ def main():
     load_dotenv()
     telegram_token = os.environ['TELEGRAM_TOKEN']
     devman_token = os.environ['DEVMAN_TOKEN']
-    telegram_bot = telegram.Bot(token=telegram_token)
-    telegram_chat_id = telegram_bot.get_updates()[0].message.from_user.id
-    get_notification(devman_token, telegram_bot, telegram_chat_id)
+    tg_bot = telegram.Bot(token=telegram_token)
+    chat_id = tg_bot.get_updates()[0].message.from_user.id
+
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(TelegramLogsHandler(tg_bot, chat_id))
+
+    get_notification(devman_token, tg_bot, chat_id)
 
 
 if __name__ == '__main__':
