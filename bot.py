@@ -38,6 +38,7 @@ def get_notification(devman_token, tg_bot, chat_id):
             if status == 'timeout':
                 logger.info("Истекло время тайм-аута")
                 timestamp = notice['timestamp_to_request']
+                time.sleep(3600)
             if status == 'found':
                 logger.info("Появилось уведомление о проверки работы")
                 timestamp = notice['last_attempt_timestamp']
@@ -64,7 +65,7 @@ def get_notification(devman_token, tg_bot, chat_id):
             continue
         except requests.exceptions.ConnectionError:
             logger.info("Нет соединения с интернетом")
-            time.sleep(60)
+            time.sleep(3600)
             continue
 
 
