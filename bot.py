@@ -1,4 +1,6 @@
 import os
+from datetime import datetime
+
 import requests
 import telegram
 from dotenv import load_dotenv
@@ -22,6 +24,8 @@ class TelegramLogsHandler(logging.Handler):
 
 
 def get_notification(devman_token, tg_bot, chat_id):
+    now = datetime.now()
+    current_time = now.strftime("%H")
     headers = {
         'Authorization': f'Token {devman_token}'
     }
@@ -29,43 +33,44 @@ def get_notification(devman_token, tg_bot, chat_id):
     timestamp = ''
     while True:
         try:
-            logger.info("Запуск бота")
+            if current_time == '09':
+                text = ('Юрий, доброе утро! \n'
+                        'Ваш Devman_Bot!')
+                tg_bot.send_message(chat_id=chat_id, text=text)
+
             payload = {'timestamp': timestamp}
             response = requests.get(long_polling_url, headers=headers, params = payload)
             response.raise_for_status()
             notice = response.json()
             status = notice['status']
             if status == 'timeout':
-                logger.info("Истекло время тайм-аута")
                 timestamp = notice['timestamp_to_request']
-                time.sleep(3600)
+                time.sleep(100)
             if status == 'found':
-                logger.info("Появилось уведомление о проверки работы")
                 timestamp = notice['last_attempt_timestamp']
                 new_attempts = notice['new_attempts']
                 for attemp in new_attempts:
                     lesson_title = attemp['lesson_title']
                     lesson_url = attemp['lesson_url']
                     if attemp['is_negative']:
-                        logger.info(f"Работу не приняли")
                         text = (f'У вас проверили работу: '
                                 f'\n"{lesson_title}"\n'
                                 f'\nК сожалению, в работе нашлись ошибки.\n'
                                 f'\n Ссылка на работу: {lesson_url}')
                         tg_bot.send_message(chat_id=chat_id, text=text)
                     else:
-                        logger.info(f"Работу приняли")
                         text = (f'У вас проверили работу: '
                                 f'\n"{lesson_title}"\n'
                                 f'\nПреподавателю всё понравилось, можно приступать к следующему уроку!\n'
                                 f'\nСсылка на работу: {lesson_url}')
                         tg_bot.send_message(chat_id=chat_id, text=text)
+                time.sleep(100)
         except requests.exceptions.ReadTimeout:
             logger.info("Истекло время тайм-аута")
             continue
         except requests.exceptions.ConnectionError:
             logger.info("Нет соединения с интернетом")
-            time.sleep(3600)
+            time.sleep(100)
             continue
 
 
@@ -80,6 +85,10 @@ def main():
     logger.addHandler(TelegramLogsHandler(tg_bot, chat_id))
 
     get_notification(devman_token, tg_bot, chat_id)
+
+
+
+
 
 
 if __name__ == '__main__':
