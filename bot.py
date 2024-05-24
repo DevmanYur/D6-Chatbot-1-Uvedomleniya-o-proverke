@@ -24,20 +24,21 @@ class TelegramLogsHandler(logging.Handler):
 
 
 def get_notification(devman_token, tg_bot, chat_id):
+    now = datetime.now()
+    current_time = now.strftime("%H:%M")
     headers = {
         'Authorization': f'Token {devman_token}'
     }
     long_polling_url = 'https://dvmn.org/api/long_polling/'
     timestamp = ''
     while True:
-        try:
-            now = datetime.now()
-            current_time = now.strftime("%H")
-            if current_time == '09':
-                text = ('Юрий, доброе утро! \n'
-                        'Ваш Devman_Bot!')
-                tg_bot.send_message(chat_id=chat_id, text=text)
+        time.sleep(1)
+        if current_time == '9:20':
+            text = ('Юрий, доброе утро! \n'
+                    'DevmanYur_Bot!')
+            tg_bot.send_message(chat_id=chat_id, text=text)
 
+        try:
             payload = {'timestamp': timestamp}
             response = requests.get(long_polling_url, headers=headers, params = payload)
             response.raise_for_status()
@@ -45,7 +46,7 @@ def get_notification(devman_token, tg_bot, chat_id):
             status = notice['status']
             if status == 'timeout':
                 timestamp = notice['timestamp_to_request']
-                time.sleep(100)
+                time.sleep(10)
             if status == 'found':
                 timestamp = notice['last_attempt_timestamp']
                 new_attempts = notice['new_attempts']
@@ -64,13 +65,12 @@ def get_notification(devman_token, tg_bot, chat_id):
                                 f'\nПреподавателю всё понравилось, можно приступать к следующему уроку!\n'
                                 f'\nСсылка на работу: {lesson_url}')
                         tg_bot.send_message(chat_id=chat_id, text=text)
-                time.sleep(100)
         except requests.exceptions.ReadTimeout:
             logger.info("Истекло время тайм-аута")
             continue
         except requests.exceptions.ConnectionError:
             logger.info("Нет соединения с интернетом")
-            time.sleep(100)
+            time.sleep(10)
             continue
 
 
