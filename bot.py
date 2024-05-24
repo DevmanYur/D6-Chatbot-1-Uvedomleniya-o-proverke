@@ -24,8 +24,6 @@ class TelegramLogsHandler(logging.Handler):
 
 
 def get_notification(devman_token, tg_bot, chat_id):
-    now = datetime.now()
-    current_time = now.strftime("%H")
     headers = {
         'Authorization': f'Token {devman_token}'
     }
@@ -33,6 +31,8 @@ def get_notification(devman_token, tg_bot, chat_id):
     timestamp = ''
     while True:
         try:
+            now = datetime.now()
+            current_time = now.strftime("%H")
             if current_time == '09':
                 text = ('Юрий, доброе утро! \n'
                         'Ваш Devman_Bot!')
