@@ -24,20 +24,12 @@ class TelegramLogsHandler(logging.Handler):
 
 
 def get_notification(devman_token, tg_bot, chat_id):
-    now = datetime.now()
-    current_time = now.strftime("%H:%M")
     headers = {
         'Authorization': f'Token {devman_token}'
     }
     long_polling_url = 'https://dvmn.org/api/long_polling/'
     timestamp = ''
     while True:
-        time.sleep(1)
-        if current_time == '9:20':
-            text = ('Юрий, доброе утро! \n'
-                    'DevmanYur_Bot!')
-            tg_bot.send_message(chat_id=chat_id, text=text)
-
         try:
             payload = {'timestamp': timestamp}
             response = requests.get(long_polling_url, headers=headers, params = payload)
